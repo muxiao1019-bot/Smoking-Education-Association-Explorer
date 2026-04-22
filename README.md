@@ -3,8 +3,7 @@
 An interactive R Shiny application that explores the relationship between **smoking prevalence** and **education level** among U.S. adults using data from the **2024 Behavioral Risk Factor Surveillance System (BRFSS)**.
 
 **Author:** Yihan Zhong  
-**GitHub:** [muxiao1019-bot](https://github.com/muxiao1019-bot)
-
+**GitHub:** [muxiao1019-bot](https://github.com/muxiao1019-bot/Smoking-Education-Association-Explorer/tree/main)
 ---
 
 ## 📌 App Goal
