@@ -1,33 +1,58 @@
 # 🚬 Smoking & Education Association Explorer
 
-An interactive R Shiny application that explores the relationship between **smoking prevalence** and **education level** among U.S. adults using data from the **2024 Behavioral Risk Factor Surveillance System (BRFSS)**.
+An R-based project exploring the relationship between **smoking prevalence** and **education level** among U.S. adults using data from the **2024 Behavioral Risk Factor Surveillance System (BRFSS)**.
 
 **Author:** Yihan Zhong  
 **GitHub:** [muxiao1019-bot](https://github.com/muxiao1019-bot/Smoking-Education-Association-Explorer/tree/main)
----
-
-## 📌 App Goal
-
-This app investigates whether smoking prevalence is associated with education level. Users can customize the chart type, education grouping, and which education groups to include, then run a chi-square test to assess statistical significance.
 
 ---
 
-## 📊 Features
+## 📌 Project Goal
 
-- **Three chart types:**
-  - Bar chart — smoking rate per education group with 95% confidence intervals
-  - Heatmap — proportion matrix of smoking status × education level
-  - Trend line — smoking prevalence across ordered education groups with a shaded confidence band
+This project investigates whether smoking prevalence is associated with education level among U.S. adults. It includes a **final report** with formal statistical analyses and an **interactive Shiny app** for data exploration.
 
-- **Two education groupings:**
-  - 3 groups: Low (< High school) / Medium (High school/GED) / High (College+)
-  - 6 groups: Original BRFSS EDUCA categories (No school → College grad+)
+---
 
-- **Filtering:** Select which education groups to include in the analysis
+## 📄 Final Report
 
-- **Summary statistics cards:** Sample size, number of current smokers, and chi-square p-value
+The final report addresses the research question: *Does the probability of being a current smoker decrease as educational attainment increases?*
 
-- **Chi-square test of independence:** Automatically computed and displayed with interpretation
+**File:** [`Final_Report_Yihan_Zhong.pdf`](./Final_Report_Yihan_Zhong.pdf)  
+**Source code:** [`Final_Report_Yihan_Zhong.Rmd`](./Final_Report_Yihan_Zhong.Rmd)
+
+### Report Structure
+- **Introduction** — Research question and scientific background
+- **Material & Methods** — Data source (2024 BRFSS), variable definitions, and statistical approaches
+- **Results** — Visualization, chi-square test, logistic regression, and forest plot
+- **Conclusions** — Interpretation of findings and public health implications
+
+### Key Findings
+- Smoking prevalence decreases monotonically with education: Low (22.7%) → Medium (16.5%) → High (8.1%)
+- Chi-square test: χ² = 9223.4, p < 0.001, Cramér's V = 0.148
+- Logistic regression: Low education OR = 3.34 (95% CI: 3.23–3.45) vs. High education
+
+---
+
+## 🖥️ Shiny App
+
+An interactive app that allows users to explore the data with customizable visualizations and statistical tests.
+
+**Features:**
+- Three chart types: bar chart, heatmap, and trend line
+- Two education groupings: 3-group or 6-group (original BRFSS categories)
+- Filtering by education group
+- Summary statistics and chi-square test results
+
+### How to Run
+Install required packages:
+```r
+install.packages(c("shiny", "ggplot2", "dplyr", "haven", "scales"))
+```
+Launch the app:
+```r
+shiny::runApp("app.R")
+```
+> **Note:** Place `LLCP2024.XPT` in the same folder as `app.R` for real data. Otherwise the app uses a simulated dataset.
 
 ---
 
@@ -38,50 +63,13 @@ This app investigates whether smoking prevalence is associated with education le
 | Source | CDC Behavioral Risk Factor Surveillance System (BRFSS) |
 | Year | 2024 |
 | File | `LLCP2024.XPT` (SAS transport format) |
-| Key variables | `_RFSMOK3` (current smoking status), `EDUCA` (education level) |
-
-> **Note:** If `LLCP2024.XPT` is not present in the app directory, the app will automatically fall back to a simulated dataset of 60,000 observations for demonstration purposes.
-
----
-
-## 🚀 How to Run
-
-### Prerequisites
-
-Install the required R packages:
-
-```r
-install.packages(c("shiny", "ggplot2", "dplyr", "haven", "scales"))
-```
-
-### Launch the App
-
-1. Place `LLCP2024.XPT` in the same folder as `app.R` (optional but recommended for real data).
-2. Open `app.R` in RStudio.
-3. Click **Run App**, or run in the R console:
-
-```r
-shiny::runApp("path/to/app.R")
-```
-
----
-
-## 🖥️ Usage
-
-1. Select a **Chart Type** from the sidebar.
-2. Choose an **Education Grouping** (3-group or 6-group).
-3. Check/uncheck **Education Groups** to include in the analysis.
-4. Click **▶ Run Analysis** to generate the plot and statistics.
-
----
+| Key variables | `_RFSMOK3` (smoking status), `EDUCA` (education level) |
 
 ## 📁 File Structure
-
-```
-.
-├── app.R            # Main Shiny application
-└── LLCP2024.XPT     # BRFSS 2024 data file (place here before running)
-```
+├── Final_Report_Yihan_Zhong.Rmd   # Report source code
+├── Final_Report_Yihan_Zhong.pdf   # Compiled report
+├── app.R                          # Shiny application
+├── references.bib                 # Bibliography
 
 ---
 
@@ -89,3 +77,5 @@ shiny::runApp("path/to/app.R")
 
 This project is for academic and educational purposes.  
 Data sourced from the [CDC BRFSS](https://www.cdc.gov/brfss/index.html).
+└── LLCP2024.XPT                   # BRFSS 2024 data (place here before running)
+---
