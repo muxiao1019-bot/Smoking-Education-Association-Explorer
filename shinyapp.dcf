@@ -1,0 +1,13 @@
+name: shinyapp
+title: shinyapp
+username: muxiao1019
+account: muxiao1019
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 17203506
+bundleId: 11890815
+url: https://muxiao1019.shinyapps.io/shinyapp/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: VTPEH6270-CP07-Shiny-Due-04-24.pdf
