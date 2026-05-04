@@ -66,10 +66,14 @@ shiny::runApp("app.R")
 | Key variables | `_RFSMOK3` (smoking status), `EDUCA` (education level) |
 
 ## 📁 File Structure
-├── Final_Report_Yihan_Zhong.Rmd   # Report source code
-├── Final_Report_Yihan_Zhong.pdf   # Compiled report
-├── app.R                          # Shiny application
-├── references.bib                 # Bibliography
+
+| File | Description |
+|------|-------------|
+| `Final_Report_Yihan_Zhong.Rmd` | Report source code |
+| `Final_Report_Yihan_Zhong.pdf` | Compiled report |
+| `app.R` | Shiny application |
+| `references.bib` | Bibliography |
+| `LLCP2024.XPT` | BRFSS 2024 data (place here before running) |
 
 ---
 
