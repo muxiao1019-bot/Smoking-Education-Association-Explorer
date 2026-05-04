@@ -1,0 +1,331 @@
+---
+title: "Final Report_Yihan Zhong"
+author: "Yihan Zhong"
+date: "2026-05-04"
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+    latex_engine: xelatex
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(haven)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(tidyr)
+library(scales)
+```
+
+# Introduction
+
+## Research Question
+
+Is smoking prevalence associated with education level among U.S. adults?
+Specifically, does the probability of being a current smoker decrease
+as educational attainment increases?
+
+## Scientific Plausibility and Context
+
+Tobacco use remains one of the leading preventable causes of death
+globally, responsible for an estimated 6.4 million deaths annually
+[@Latvala2022]. In the United States, cigarette smoking is not uniformly
+distributed across the population: epidemiological evidence consistently
+demonstrates an inverse association between educational attainment and
+smoking prevalence, with lower-educated individuals being more likely to
+smoke and less likely to successfully quit [@Garrett2019].
+
+This disparity has widened over time. Analysis of National Health
+Interview Survey data spanning 1966 to 2018 shows that smoking
+disparities by education have increased across birth cohorts, with
+college-educated individuals exhibiting the lowest initiation
+probabilities and highest cessation rates across all age groups and
+genders [@Cao2023].
+
+Several mechanisms may explain this pattern. Higher education is
+associated with greater health literacy, enabling individuals to better
+understand the health risks of tobacco use and navigate cessation
+resources. Additionally, individuals with lower educational attainment
+face greater socioeconomic stressors and are more frequently targeted
+by tobacco industry marketing [@Cao2023]. Evidence from a pooled
+analysis of 18 twin cohorts further supports a causal interpretation:
+within pairs of twins discordant for both education and smoking,
+the less-educated co-twin was consistently more likely to be a current
+smoker, even after controlling for shared genetic and family background
+[@Latvala2022].
+
+Based on this evidence, we hypothesize that smoking prevalence will
+decrease monotonically with increasing educational attainment among
+U.S. adults in the 2024 BRFSS dataset.
+
+# Material & Methods
+
+## Data
+
+The data used in this report come from the 2024 Behavioral Risk Factor
+Surveillance System (BRFSS), an annual, cross-sectional telephone survey
+conducted by the U.S. Centers for Disease Control and Prevention (CDC).
+The BRFSS collects state-level data on health behaviors, chronic
+conditions, and preventive health practices among U.S. adults aged
+18 years and older. The 2024 dataset was downloaded from the CDC BRFSS
+website in XPT format.
+
+Two variables were selected for this analysis:
+
+- **`_RFSMOK3`**: A derived variable indicating current smoking status
+  (1 = current smoker, 2 = not a current smoker). Respondents with
+  missing or ambiguous values were excluded.
+- **`EDUCA`**: Self-reported highest level of education completed,
+  coded on a 6-point ordinal scale. Respondents with missing values
+  or codes outside 1–6 were excluded.
+
+For analysis, `EDUCA` was recoded into three ordered groups:
+**Low** (codes 1–3: less than high school), **Medium** (code 4: high
+school graduate or GED), and **High** (codes 5–6: some college or
+college graduate). Smoking status was converted to a binary variable
+(`current_smoker`: 1 = yes, 0 = no).
+
+```{r data-load, results='hide'}
+setwd("C:/Users/HUAWEI/Desktop/MPH 2026 spring/6270/cp03/LLCP2024XPT")
+brfss <- read_xpt("LLCP2024.XPT")
+
+brfss_clean <- brfss %>%
+  dplyr::select(`_RFSMOK3`, EDUCA) %>%
+  dplyr::filter(
+    !is.na(`_RFSMOK3`),
+    !is.na(EDUCA),
+    EDUCA %in% 1:6,
+    `_RFSMOK3` %in% c(1, 2)
+  ) %>%
+  mutate(
+    current_smoker = ifelse(`_RFSMOK3` == 2, 1, 0),
+    edu_group = case_when(
+      EDUCA %in% 1:3 ~ "Low",
+      EDUCA == 4     ~ "Medium",
+      EDUCA %in% 5:6 ~ "High"
+    ),
+    edu_group = factor(edu_group, levels = c("Low", "Medium", "High"))
+  )
+```
+
+```{r variable-table, echo=FALSE}
+variable_info <- data.frame(
+  `Variable Name` = c("_RFSMOK3", "EDUCA", "current_smoker", "edu_group"),
+  Description = c(
+    "Current smoking status (derived)",
+    "Highest education level completed",
+    "Binary smoker indicator (1=Yes, 0=No)",
+    "Grouped education (Low/Medium/High)"
+  ),
+  `Variable Type` = c("Categorical", "Categorical (ordinal)", "Binary", "Categorical (ordinal)"),
+  `R Class` = c("numeric", "numeric", "numeric", "factor"),
+  check.names = FALSE
+)
+kable(variable_info, caption = "Overview of Selected Variables")
+```
+
+## Statistical Analyses
+
+The association between education level and current smoking status was
+examined using two complementary approaches.
+
+**Chi-square test of independence.** A Pearson chi-square test was used
+to assess whether smoking prevalence differed significantly across
+education groups. The assumptions of the chi-square test require that
+all expected cell frequencies are >= 5, which was verified prior to
+analysis. The effect size was quantified using Cramér's V, where values
+of 0.1, 0.3, and 0.5 indicate small, medium, and large associations,
+respectively.
+
+**Logistic regression.** To quantify the association between education
+and smoking while accounting for the ordinal nature of the exposure,
+a binary logistic regression model was fitted with `current_smoker` as
+the outcome and `edu_group` as the predictor, using the High education
+group as the reference category. Odds ratios (OR) and 95% confidence
+intervals (CI) are reported. A trend test was additionally conducted
+by treating education as a numeric ordinal variable (Low = 1,
+Medium = 2, High = 3) to assess whether smoking odds changed
+monotonically across groups.
+
+All analyses were conducted in R. The significance threshold was set
+at $\alpha$ = 0.05.
+
+## Code
+
+All code and data documentation required to replicate this report are
+available at: **https://github.com/muxiao1019-bot/VTPEH6270-CP06**
+
+# Results
+
+## Visualization
+
+```{r prevalence-plot, fig.height=4, fig.width=6, fig.cap="Smoking prevalence decreases monotonically with higher educational attainment (2024 BRFSS)."}
+smoke_by_edu <- brfss_clean %>%
+  group_by(edu_group) %>%
+  summarise(
+    n = n(),
+    smokers = sum(current_smoker),
+    smoking_prev = mean(current_smoker),
+    .groups = "drop"
+  )
+
+ggplot(smoke_by_edu, aes(x = edu_group, y = smoking_prev, fill = edu_group)) +
+  geom_col(width = 0.6, show.legend = FALSE) +
+  geom_text(aes(label = paste0(round(smoking_prev * 100, 1), "%")),
+            vjust = -0.5, size = 3.5) +
+  scale_fill_manual(values = c("Low" = "#d73027",
+                                "Medium" = "#fc8d59",
+                                "High" = "#4575b4")) +
+  scale_y_continuous(labels = percent_format(), limits = c(0, 0.35)) +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "Smoking Prevalence by Education Level",
+    x = "Education Level",
+    y = "Smoking Prevalence"
+  )
+```
+
+## Statistical Analyses
+
+### Chi-square Test
+
+```{r chisq-assumption, results='hide', echo=FALSE}
+# Contingency table
+cont_table <- table(brfss_clean$edu_group, brfss_clean$current_smoker)
+kable(cont_table, caption = "Contingency Table: Education Group vs Smoking Status")
+
+# Expected frequencies
+chisq_result <- chisq.test(cont_table)
+expected <- chisq_result$expected
+kable(round(expected, 1), caption = "Expected Cell Frequencies (all must be >= 5)")
+```
+
+All expected cell frequencies were well above 5, confirming that the
+chi-square test assumption was met.
+
+```{r chisq-test, echo=FALSE}
+# Chi-square test result
+chisq_result
+
+# Cramer's V effect size
+n_total <- sum(cont_table)
+cramers_v <- sqrt(chisq_result$statistic /
+                    (n_total * (min(nrow(cont_table),
+                                   ncol(cont_table)) - 1)))
+cat("Cramer's V:", round(cramers_v, 4), "\n")
+```
+
+### Logistic Regression
+
+```{r logistic-regression, echo=FALSE}
+# Logistic regression: High as reference group
+brfss_clean$edu_group <- relevel(brfss_clean$edu_group, ref = "High")
+model_cat <- glm(current_smoker ~ edu_group,
+                 data = brfss_clean,
+                 family = binomial)
+
+# Odds ratios and 95% CI
+or_table <- exp(cbind(OR = coef(model_cat),
+                      confint(model_cat)))
+kable(round(or_table, 3),
+      caption = "Odds Ratios from Logistic Regression (Reference: High education)")
+```
+
+```{r trend-test, echo=FALSE}
+# Trend test: education as ordinal numeric variable
+brfss_clean <- brfss_clean %>%
+  mutate(edu_numeric = case_when(
+    edu_group == "Low"    ~ 1,
+    edu_group == "Medium" ~ 2,
+    edu_group == "High"   ~ 3
+  ))
+
+model_trend <- glm(current_smoker ~ edu_numeric,
+                   data = brfss_clean,
+                   family = binomial)
+
+trend_or <- exp(cbind(OR = coef(model_trend),
+                      confint(model_trend)))
+kable(round(trend_or, 3),
+      caption = "Trend Test: OR per Unit Increase in Education Level")
+```
+
+```{r or-plot, fig.height=3.5, fig.width=6, fig.cap="Odds ratios for current smoking by education group relative to High education (logistic regression)."}
+# Forest plot of ORs
+or_df <- data.frame(
+  Group = c("Low vs High", "Medium vs High"),
+  OR    = exp(coef(model_cat)[2:3]),
+  Lower = exp(confint(model_cat)[2:3, 1]),
+  Upper = exp(confint(model_cat)[2:3, 2])
+)
+
+ggplot(or_df, aes(x = OR, y = Group)) +
+  geom_point(size = 3, color = "#d73027") +
+  geom_errorbarh(aes(xmin = Lower, xmax = Upper),
+                 height = 0.2, color = "#d73027") +
+  geom_vline(xintercept = 1, linetype = "dashed", color = "gray40") +
+  scale_x_log10() +
+  theme_minimal(base_size = 12) +
+  labs(
+    title = "Odds Ratios for Current Smoking by Education Group",
+    x = "Odds Ratio (log scale)",
+    y = NULL
+  )
+
+```
+
+The chi-square test revealed a statistically significant association
+between education level and smoking status ($\chi^2$= 9223.4, df = 2,
+p < 0.001). Cramér's V = 0.148, indicating a small-to-moderate
+effect size.
+
+Logistic regression showed that compared to individuals with high
+educational attainment, those with low education had significantly
+higher odds of being a current smoker
+(OR = 3.34, 95% CI: 3.23–3.45),
+as did those with medium education
+(OR = 2.24, 95% CI: 2.20–2.29).
+The trend test confirmed a significant monotonic decrease in smoking
+odds with increasing education (OR per unit increase = 0.51, p < 0.001).
+
+
+# Conclusions
+
+This analysis of the 2024 BRFSS dataset provides strong evidence of an
+inverse association between educational attainment and current smoking
+prevalence among U.S. adults. Both the chi-square test and logistic
+regression confirmed that individuals with lower education were
+significantly more likely to be current smokers, with a clear
+monotonic trend across the three education groups. These findings are
+consistent with the existing literature documenting persistent and
+widening educational disparities in tobacco use in the United States
+[@Garrett2019; @Cao2023].
+
+The observed pattern aligns with proposed mechanisms linking education
+to smoking behavior, including greater health literacy and access to
+cessation resources among more educated individuals [@Latvala2022].
+The large sample size of the BRFSS — consistent with simulations
+conducted in Checkpoint 04 — ensured high statistical power to detect
+even modest effect sizes, as reflected by the highly significant
+chi-square result. However, the relatively small Cramér's V value
+suggests that while the association is statistically robust, education
+alone explains a limited proportion of the variance in smoking behavior,
+and other socioeconomic and contextual factors likely contribute
+to the observed disparities.
+
+From a public health perspective, these findings underscore the
+importance of targeting tobacco control efforts toward lower-educated
+populations, who bear a `d`isproportionate burden of smoking-related
+disease and mortality.
+
+# AI Use Disclosure Statement
+
+This document was prepared with assistance from Claude (Anthropic).
+The tool was used to generate the initial R Markdown structure and 
+develop the statistical analysis code, all code and interpretations were reviewed and verified by the author.
+
+# References
