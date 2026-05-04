@@ -81,5 +81,4 @@ shiny::runApp("app.R")
 
 This project is for academic and educational purposes.  
 Data sourced from the [CDC BRFSS](https://www.cdc.gov/brfss/index.html).
-└── LLCP2024.XPT                   # BRFSS 2024 data (place here before running)
 ---
